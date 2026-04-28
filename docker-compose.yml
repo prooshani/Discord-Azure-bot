@@ -1,0 +1,16 @@
+services:
+  discord-azure-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: discord-azure-bot
+    restart: unless-stopped
+    environment:
+      Discord__Token: ${DISCORD_TOKEN}
+      Discord__GuildId: ${DISCORD_GUILD_ID}
+      AzureDevOps__Organization: ${AZDO_ORGANIZATION}
+      AzureDevOps__Project: ${AZDO_PROJECT}
+      AzureDevOps__PersonalAccessToken: ${AZDO_PAT}
+      Logging__LogLevel__Default: ${LOG_LEVEL:-Information}
+      Logging__LogLevel__Microsoft: Warning
+      Logging__LogLevel__Microsoft.Hosting.Lifetime: Information
