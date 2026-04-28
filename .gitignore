@@ -64,3 +64,5 @@ appsettings.Development.json
 # OS
 Thumbs.db
 .DS_Store
+
+ABOUT.md
