@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/tests/">
+    <Project Path="tests/discord-chatbot.Tests/discord-chatbot.Tests.csproj" />
+  </Folder>
+  <Project Path="discord-chatbot.csproj" />
+</Solution>
