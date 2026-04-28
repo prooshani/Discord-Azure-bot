@@ -25,8 +25,8 @@ It combines two operating modes:
 ### 1) Chat Reference Resolution
 When a user posts a message containing Azure DevOps references, the bot enriches it automatically.
 
-- `#1234` ? Work Item lookup
-- `!5678` ? Pull Request lookup
+- `#1234` -> Work Item lookup
+- `!5678` -> Pull Request lookup
 
 Behavior:
 - Handles multiple references in one message
@@ -290,6 +290,12 @@ docker compose down
 ```bash
 export DISCORD_TOKEN="<token>"
 export DISCORD_GUILD_ID="<guild-id>"
+export BUGREPORT_CHANNEL_ID="<bug-report-channel-id>"
+export BUGREPORT_DEDUPE_THRESHOLD="0.60"
+export BUGREPORT_DEDUPE_MAX_CANDIDATES="300"
+export ASSIGNTASK_ALLOWED_ROLE_IDS="<role-id-1,role-id-2>"
+export ASSIGNTASK_ALLOWED_USER_IDS="<user-id-1,user-id-2>"
+export ASSIGNTASK_UNAUTHORIZED_MESSAGE="you are not authorized to assign tasks to others."
 export AZDO_ORGANIZATION="<org>"
 export AZDO_PROJECT="<project>"
 export AZDO_PAT="<pat>"
@@ -302,6 +308,12 @@ docker compose up -d --build
 ```powershell
 $env:DISCORD_TOKEN="<token>"
 $env:DISCORD_GUILD_ID="<guild-id>"
+$env:BUGREPORT_CHANNEL_ID="<bug-report-channel-id>"
+$env:BUGREPORT_DEDUPE_THRESHOLD="0.60"
+$env:BUGREPORT_DEDUPE_MAX_CANDIDATES="300"
+$env:ASSIGNTASK_ALLOWED_ROLE_IDS="<role-id-1,role-id-2>"
+$env:ASSIGNTASK_ALLOWED_USER_IDS="<user-id-1,user-id-2>"
+$env:ASSIGNTASK_UNAUTHORIZED_MESSAGE="you are not authorized to assign tasks to others."
 $env:AZDO_ORGANIZATION="<org>"
 $env:AZDO_PROJECT="<project>"
 $env:AZDO_PAT="<pat>"
