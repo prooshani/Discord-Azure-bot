@@ -82,6 +82,52 @@ Authorization behavior (applies only to `/assigntask`):
 - If both allowlists are empty, bot-side restriction is disabled and Discord native permissions control access
 - If any allowlist is populated, requester must match allowed user IDs or role IDs
 
+#### `/reportbug`
+Creates a structured bug report and posts it to a dedicated bug-report channel.
+
+Slash command metadata options:
+- `title` (required): short summary
+- `area` (required): frontend/backend/locale_translations/devops
+- `environment` (required): development/qas/production
+- `platform` (required): windows/osx/ios/android
+- `browser` (optional): chrome/firefox/safari/opera/brave/other
+- `version` (required): app/build version
+- `instance` (required): customer/instance identifier
+- `check_dedupe` (optional, default `true`): pre-check duplicates before modal opens
+- `attachment` (optional): single evidence file
+- `tag` (optional): mention target (for example `@frontend`)
+- `note` (optional): extra context
+
+Modal inputs (multiline):
+- Steps to Reproduce (required)
+- Expected Behavior (required)
+- Actual Behavior (required)
+
+Duplicate-detection behavior:
+- Pre-modal dedupe: metadata-level check; if duplicate found, modal does not open
+- Post-modal dedupe: full-content check (includes steps/expected/actual)
+- Exact and fuzzy matching are both used
+
+---
+
+## ReportBug Settings
+
+`Discord:BugReporting` options:
+- `ChannelId`: target bug-report channel id
+- `DedupeSimilarityThreshold`: fuzzy similarity threshold (default `0.60`)
+- `DedupeMaxCandidates`: max recent records checked for fuzzy dedupe (default `300`)
+
+Quick guidance:
+- Lower threshold => more aggressive duplicate detection (more false positives)
+- Higher threshold => stricter matching (more false negatives)
+
+Current reportbug constraints:
+- Modal fields are constrained by Discord embed limits when rendered:
+  - each embed field value max `1024` chars
+  - long content is auto-truncated with `…(truncated)`
+- Slash command attachment supports **one file** per bug report in current implementation
+- Discord slash commands do not support multi-file upload in one option
+
 ---
 
 ## Architecture
@@ -125,6 +171,11 @@ Use either `appsettings.json` or environment variables.
   "Discord": {
     "Token": "YOUR_DISCORD_BOT_TOKEN",
     "GuildId": null,
+    "BugReporting": {
+      "ChannelId": null,
+      "DedupeSimilarityThreshold": 0.60,
+      "DedupeMaxCandidates": 300
+    },
     "CommandAuthorization": {
       "AssignTask": {
         "AllowedRoleIdsCsv": "",
@@ -154,6 +205,9 @@ Use either `appsettings.json` or environment variables.
 |---|---|
 | Discord token | `Discord__Token` |
 | Discord guild id (optional) | `Discord__GuildId` |
+| Bug report channel id | `Discord__BugReporting__ChannelId` |
+| Bug dedupe threshold | `Discord__BugReporting__DedupeSimilarityThreshold` |
+| Bug dedupe max candidates | `Discord__BugReporting__DedupeMaxCandidates` |
 | AssignTask allowed role IDs CSV (optional) | `Discord__CommandAuthorization__AssignTask__AllowedRoleIdsCsv` |
 | AssignTask allowed user IDs CSV (optional) | `Discord__CommandAuthorization__AssignTask__AllowedUserIdsCsv` |
 | AssignTask unauthorized message (optional) | `Discord__CommandAuthorization__AssignTask__UnauthorizedMessage` |

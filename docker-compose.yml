@@ -8,6 +8,12 @@ services:
     environment:
       Discord__Token: ${DISCORD_TOKEN}
       Discord__GuildId: ${DISCORD_GUILD_ID}
+      Discord__BugReporting__ChannelId: ${BUGREPORT_CHANNEL_ID}
+      Discord__BugReporting__DedupeSimilarityThreshold: ${BUGREPORT_DEDUPE_THRESHOLD:-0.60}
+      Discord__BugReporting__DedupeMaxCandidates: ${BUGREPORT_DEDUPE_MAX_CANDIDATES:-300}
+      Discord__CommandAuthorization__AssignTask__AllowedRoleIdsCsv: ${ASSIGNTASK_ALLOWED_ROLE_IDS:-}
+      Discord__CommandAuthorization__AssignTask__AllowedUserIdsCsv: ${ASSIGNTASK_ALLOWED_USER_IDS:-}
+      Discord__CommandAuthorization__AssignTask__UnauthorizedMessage: ${ASSIGNTASK_UNAUTHORIZED_MESSAGE:-you are not authorized to assign tasks to others.}
       AzureDevOps__Organization: ${AZDO_ORGANIZATION}
       AzureDevOps__Project: ${AZDO_PROJECT}
       AzureDevOps__PersonalAccessToken: ${AZDO_PAT}
