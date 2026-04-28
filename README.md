@@ -74,6 +74,14 @@ Assignee behavior:
 - Otherwise, assignee is pulled from the Azure DevOps task
 - If neither exists, assignee line is omitted
 
+Authorization behavior (applies only to `/assigntask`):
+- Layer 1 (Discord native): restrict command access by role/user from Discord server command permissions
+- Layer 2 (bot enforcement): optional allowlists in configuration
+  - `AllowedRoleIdsCsv`
+  - `AllowedUserIdsCsv`
+- If both allowlists are empty, bot-side restriction is disabled and Discord native permissions control access
+- If any allowlist is populated, requester must match allowed user IDs or role IDs
+
 ---
 
 ## Architecture
@@ -116,7 +124,14 @@ Use either `appsettings.json` or environment variables.
 {
   "Discord": {
     "Token": "YOUR_DISCORD_BOT_TOKEN",
-    "GuildId": null
+    "GuildId": null,
+    "CommandAuthorization": {
+      "AssignTask": {
+        "AllowedRoleIdsCsv": "",
+        "AllowedUserIdsCsv": "",
+        "UnauthorizedMessage": "you are not authorized to assign tasks to others."
+      }
+    }
   },
   "AzureDevOps": {
     "Organization": "your-org",
@@ -139,6 +154,9 @@ Use either `appsettings.json` or environment variables.
 |---|---|
 | Discord token | `Discord__Token` |
 | Discord guild id (optional) | `Discord__GuildId` |
+| AssignTask allowed role IDs CSV (optional) | `Discord__CommandAuthorization__AssignTask__AllowedRoleIdsCsv` |
+| AssignTask allowed user IDs CSV (optional) | `Discord__CommandAuthorization__AssignTask__AllowedUserIdsCsv` |
+| AssignTask unauthorized message (optional) | `Discord__CommandAuthorization__AssignTask__UnauthorizedMessage` |
 | ADO organization | `AzureDevOps__Organization` |
 | ADO project | `AzureDevOps__Project` |
 | ADO PAT | `AzureDevOps__PersonalAccessToken` |

@@ -18,6 +18,9 @@ public sealed class DiscordBotService : BackgroundService
     private readonly IMemoryCache _memoryCache;
     private readonly DiscordOptions _discordOptions;
     private readonly ILogger<DiscordBotService> _logger;
+    private readonly HashSet<ulong> _assignTaskAllowedRoleIds;
+    private readonly HashSet<ulong> _assignTaskAllowedUserIds;
+    private readonly string _assignTaskUnauthorizedMessage;
     private static readonly TimeSpan ProcessedMessageTtl = TimeSpan.FromMinutes(10);
 
     public DiscordBotService(
@@ -34,6 +37,11 @@ public sealed class DiscordBotService : BackgroundService
         _memoryCache = memoryCache;
         _discordOptions = discordOptions.Value;
         _logger = logger;
+        _assignTaskAllowedRoleIds = ParseUlongCsv(_discordOptions.CommandAuthorization.AssignTask.AllowedRoleIdsCsv);
+        _assignTaskAllowedUserIds = ParseUlongCsv(_discordOptions.CommandAuthorization.AssignTask.AllowedUserIdsCsv);
+        _assignTaskUnauthorizedMessage = string.IsNullOrWhiteSpace(_discordOptions.CommandAuthorization.AssignTask.UnauthorizedMessage)
+            ? "you are not authorized to assign tasks to others."
+            : _discordOptions.CommandAuthorization.AssignTask.UnauthorizedMessage.Trim();
 
         _discordClient.Log += OnDiscordLogAsync;
         _discordClient.MessageReceived += OnMessageReceivedAsync;
@@ -360,6 +368,21 @@ public sealed class DiscordBotService : BackgroundService
     {
         try
         {
+            if (!IsAuthorizedForAssignTask(command))
+            {
+                if (!command.HasResponded)
+                {
+                    await command.RespondAsync(_assignTaskUnauthorizedMessage, ephemeral: true);
+                }
+                else
+                {
+                    await command.FollowupAsync(_assignTaskUnauthorizedMessage, ephemeral: true);
+                }
+
+                _logger.LogWarning("Unauthorized /assigntask attempt by user {UserId}", command.User.Id);
+                return;
+            }
+
             var taskId = GetRequiredLongOption(command, "task");
             var assigneeInput = GetOptionalStringOption(command, "assignee");
             var note = GetOptionalStringOption(command, "note");
@@ -488,6 +511,42 @@ public sealed class DiscordBotService : BackgroundService
     {
         var option = command.Data.Options.FirstOrDefault(x => string.Equals(x.Name, optionName, StringComparison.Ordinal));
         return option?.Value as string;
+    }
+
+    private bool IsAuthorizedForAssignTask(SocketSlashCommand command)
+    {
+        // Empty allowlists mean "no bot-side restriction" so Discord UI permissions can drive access.
+        if (_assignTaskAllowedUserIds.Count == 0 && _assignTaskAllowedRoleIds.Count == 0)
+        {
+            return true;
+        }
+
+        if (_assignTaskAllowedUserIds.Contains(command.User.Id))
+        {
+            return true;
+        }
+
+        if (command.User is SocketGuildUser guildUser)
+        {
+            return guildUser.Roles.Any(role => _assignTaskAllowedRoleIds.Contains(role.Id));
+        }
+
+        return false;
+    }
+
+    private static HashSet<ulong> ParseUlongCsv(string raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return [];
+        }
+
+        return raw
+            .Split([',', ';', ' '], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(value => ulong.TryParse(value, out var parsed) ? parsed : (ulong?)null)
+            .Where(value => value.HasValue)
+            .Select(value => value!.Value)
+            .ToHashSet();
     }
 
     private static IEnumerable<int> ExtractDistinctIds(string input)
